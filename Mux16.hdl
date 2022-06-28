@@ -1,0 +1,12 @@
+CHIP Mux16{
+	IN a[16],b[16],s;
+	OUT out[16];
+
+	PARTS:
+	Not(in=s,out=nots);
+	
+	And16-2(x=a,y=nots,out=o1);
+	And16-2(x=b,y=s,out=o2);
+
+	Or16(a=o1,b=o2,out=out);
+}

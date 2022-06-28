@@ -1,0 +1,62 @@
+CHIP CLA{
+	IN a[4],b[4],carryin,control;
+	OUT sum[4],carryout1,carryout0;
+
+	PARTS:
+	//Adjusts b according to control
+	Xor(a=b[0],b=control,out=B0);
+	Xor(a=b[1],b=control,out=B1);
+	Xor(a=b[2],b=control,out=B2);	
+	Xor(a=b[3],b=control,out=B3);
+
+	//generating propagating terms
+        Xor(a=a[0],b=B0,out=p0);
+        Xor(a=a[1],b=B1,out=p1);        
+        Xor(a=a[2],b=B2,out=p2);
+        Xor(a=a[3],b=B3,out=p3);
+
+	//generating generator terms
+	And(a=a[0],b=B0,out=g0);	
+	And(a=a[1],b=B1,out=g1);
+	And(a=a[2],b=B2,out=g2);
+	And(a=a[3],b=B3,out=g3);
+
+//Calculating carry terms
+
+	//c1
+	And(a=p0,b=carryin,out=o1);
+	Or(a=o1,b=g0,out=c1);
+
+	//c2
+	And3(a=p1,b=p0,c=carryin,out=o2);
+	And(a=p1,b=g0,out=o3);
+	Or3(a=o2,b=o3,c=g1,out=c2);
+
+	//c3
+	And4(a=p2,b=p1,c=p0,d=carryin,out=o4);
+	And3(a=p2,b=p1,c=g0,out=o5);
+	And(a=p2,b=g1,out=o6);
+	Or4(a=o4,b=o5,c=o6,d=g2,out=c3);
+
+	//carryout0
+	Not(in=c3,out=notc3);
+	Not(in=notc3,out=carryout0);
+
+	//c4
+	And5(a=p3,b=p2,c=p1,d=p0,e=carryin,out=o7);
+	And4(a=p3,b=p2,c=p1,d=g0,out=o8);
+	And3(a=p3,b=p2,c=g1,out=o9);
+	And(a=p3,b=g2,out=o10);
+	Or5(a=o7,b=o8,c=o9,d=o10,e=g3,out=c4);
+
+	//carryout1
+	Not(in=c4,out=notc4);
+	Not(in=notc4,out=carryout1);
+
+//sum
+	Xor(a=p0,b=carryin,out=sum[0]);
+	Xor(a=p1,b=c1,out=sum[1]);
+	Xor(a=p2,b=c2,out=sum[2]);
+	Xor(a=p3,b=c3,out=sum[3]);
+
+}

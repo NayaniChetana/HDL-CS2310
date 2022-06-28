@@ -1,0 +1,45 @@
+//Team 2
+CHIP HackCPU {
+	IN inM[16], instruction[16], reset;
+	OUT outM[16], writeM, addressM[15], pc[15];
+
+	PARTS:
+
+	Mux16(a=instruction,b=outputALU,s=instruction[15],out=inA);
+	And(a=instruction[4],b=instruction[15],out=writeD);
+	And(a=instruction[5],b=instruction[15],out=writeA1);
+	Not(in=instruction[15],out=writeA2);
+	Or(a=writeA1,b=writeA2,out=writeA);
+
+        //writeM calculation
+	And(a=instruction[3],b=instruction[15],out=writeM);
+
+        //addressM calculation
+	ARegister(in=inA,load=writeA,out=regA,out[0..14]=addressM);
+
+	//outM calculation
+	DRegister(in=outputALU,load=writeD,out=inALU1);
+        Mux16(a=regA,b=inM,s=instruction[12],out=inALU2);
+	HackALU(x=inALU1,y=inALU2,zx=instruction[11],nx=instruction[10],zy=instruction[9],ny=instruction[8],f=instruction[7],no=instruction[6],out=outputALU,out=outM,zr=zr,ng=ng);
+
+        //Jump instructions
+	Not(in=zr, out=notzr);
+  	Not(in=ng, out=notng);
+    	And(a=instruction[0], b=notzr, out=temp);
+  	And(a=temp,b=notng,out=J0);
+  	And(a=instruction[1], b=zr, out=J1);
+  	And(a=instruction[2], b=ng, out=J2);
+	Or3(a=J1,b=J2,c=J0,out=jump);
+  	And(a=instruction[15],b=jump,out=Jump);
+  	Not(in=Jump, out=notJump);
+
+        //pc calculation
+  	PC(in=regA, load=Jump, inc=notJump, reset=reset, out[0..14]=pc);
+
+}
+
+
+
+
+
+

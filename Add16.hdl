@@ -1,0 +1,84 @@
+CHIP Add16{
+    IN A[16], B[16];
+    OUT result[16];
+
+    PARTS:
+    Not(in=true,out=c0);
+
+//generating propagaing and generator terms
+    Xor(a=A[0], b=B[0], out=p0);
+    Xor(a=A[1], b=B[1], out=p1);
+    Xor(a=A[2], b=B[2], out=p2);
+    Xor(a=A[3], b=B[3], out=p3);
+    Xor(a=A[4], b=B[4], out=p4);
+    Xor(a=A[5], b=B[5], out=p5);
+    Xor(a=A[6], b=B[6], out=p6);
+    Xor(a=A[7], b=B[7], out=p7);
+    Xor(a=A[8], b=B[8], out=p8);
+    Xor(a=A[9], b=B[9], out=p9);
+    Xor(a=A[10], b=B[10], out=p10);
+    Xor(a=A[11], b=B[11], out=p11);
+
+  
+    And(a=A[0], b=B[0], out=g0);
+    And(a=A[1], b=B[1], out=g1);
+    And(a=A[2], b=B[2], out=g2);
+    And(a=A[3], b=B[3], out=g3);
+    And(a=A[4], b=B[4], out=g4);
+    And(a=A[5], b=B[5], out=g5);
+    And(a=A[6], b=B[6], out=g6);
+    And(a=A[7], b=B[7], out=g7);
+    And(a=A[8], b=B[8], out=g8);
+    And(a=A[9], b=B[9], out=g9);
+    And(a=A[10], b=B[10], out=g10);
+    And(a=A[11], b=B[11], out=g11);
+
+//generating higher order terms
+    //P0
+    And4(a=p0, b=p1, c=p2, d=p3, out=P0);
+    //P1
+    And4(a=p4, b=p5, c=p6, d=p7, out=P1);
+    //P2
+    And4(a=p8, b=p9, c=p10, d=p11, out=P2);
+
+    // G0
+    And4(a=p3, b=p2, c=p1, d=g0, out=o01);
+    And3(a=p3, b=p2, c=g1, out=o02);
+    And(a=p3, b=g2, out=o03);
+    Or4(a=o01, b=o02, c=o03, d=g3, out=G0);
+    
+    // G1
+    And4(a=p7, b=p6, c=p5, d=g4, out=o11);
+    And3(a=p7, b=p6, c=g5, out=o12);
+    And(a=p7, b=g6, out=o13);
+    Or4(a=o11, b=o12, c=o13, d=g7, out=G1);
+
+    // G2
+    And4(a=p11, b=p10, c=p9, d=g8, out=o21);
+    And3(a=p11, b=p10, c=g9, out=o22);
+    And(a=p11, b=g10, out=o23);
+    Or4(a=o21, b=o22, c=o23, d=g11, out=G2);
+
+    //Calculating required carry bits    
+    //C4
+    And(a=P0, b=c0, out=o31);
+    Or(a=o31, b=G0, out=carry4);
+    
+    //c8
+    And3(a=P1, b=P0, c=c0, out=o41);
+    And(a=P1, b=G0, out=o42);
+    Or5(a=o41, b=o42, c=G1, out=carry8);
+    
+    //C12
+    And4(a=P2, b=P1, c=P0, d=c0, out=o51);
+    And3(a=P2, b=P1, c=G0, out=o52);
+    And(a=P2, b=G1, out=o53);
+    Or5(a=o51, b=o52, c=o53, d=G2, out=carry12);
+
+
+    //Use 4 CLA adder circuits to get the final result
+    CLA(a=A[0..3], b=B[0..3], carryin=c0, control=false, sum=result[0..3], carryout0=c3, carryout1=c4);
+    CLA(a=A[4..7], b=B[4..7], carryin=carry4, control=false, sum=result[4..7], carryout1=c8, carryout0=c7);
+    CLA(a=A[8..11], b=B[8..11], carryin=carry8, control=false, sum=result[8..11], carryout1=c12, carryout0=c11);
+    CLA(a=A[12..15], b=B[12..15], carryin=carry12, control=false, sum=result[12..15], carryout1=c16, carryout0=c15);
+}

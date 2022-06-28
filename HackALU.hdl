@@ -1,0 +1,30 @@
+CHIP HackALU{
+	IN x[16],y[16],zx,zy,nx,ny,f,no;
+	OUT out[16],zr,ng;
+
+	PARTS:
+	//calculating p
+	Mux16(a=x,b=false,s=zx,out=x0);
+	Xor16(x=x0,y=nx,out=p);
+
+        //calculating q
+	Mux16(a=y,b=false,s=zy,out=y0);
+	Xor16(x=y0,y=ny,out=q);
+
+	//+ and & operations on p and q  
+	And16(a=p,b=q,out=andxy);
+	Add16(A=p,B=q,result=addxy);
+
+        //calculating r
+	Mux16(a=andxy,b=addxy,s=f,out=r);
+
+	//Calculating ng
+	Xor16(x=r,y=no,out[15]=ng,out=out1);
+
+	//zr calculation
+	Or16bits(in=out1,out=notzr);
+        Not(in=notzr,out=zr);
+
+        //out calculation
+	And16(a=out1,b=out1,out=out);
+}
